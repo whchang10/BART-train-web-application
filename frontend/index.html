@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<!--
+    Part#5 Answer
+    The JavaScript Same-Origin Policy is implemented by browser. We do cross-site http requests at server to evade the Same-Origin Policy.
+-->
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta name="viewport" content="width=device-width">
+    <link rel="stylesheet" href="http://hilios.github.io/jQuery.countdown/css/syntax.css">
+    <link rel="stylesheet" href="http://hilios.github.io/jQuery.countdown/css/main.css">
+    <script src="http://gc.kis.v2.scr.kaspersky-labs.com/A5BE3813-7A4A-EC4F-A43F-77DD447B4CC6/main.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="http://netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/lodash.js/2.4.1/lodash.min.js"></script>
+    <script src="http://cdn.rawgit.com/hilios/jQuery.countdown/2.2.0/dist/jquery.countdown.min.js"></script>
+    <script>
+        function visittimeser() {
+            if(typeof(Storage) !== "undefined") {
+                if (localStorage.visittimes) {
+                    localStorage.visittimes = Number(localStorage.visittimes)+1;
+                    $("#result").html("<p>Welcome back! You visit this website " + localStorage.visittimes + " time(s).</p>");
+                } else {
+                    localStorage.visittimes = 1;
+                }
+            } 
+            else {
+                $("#result").html("<p>Sorry, your browser does not support web storage...</p>");
+            }
+        }
+
+        $( document ).ready(visittimeser);
+    </script>
+    <style>
+      /* Always set the map height explicitly to define the size of the div
+       * element that contains the map. */
+      #map {
+        height: 400px;
+        width: 400px;
+        margin: auto;
+      }
+      #countdown {
+        margin: auto;
+      }
+    </style>
+
+    <title>COEN 315 Asignment 4</title>
+</head>
+
+<body>
+
+<div id="result">
+    <p>Welcome!</p>
+</div>
+
+<header>
+    <h2>COEN 315 Asignment 4</h2>
+</header>
+
+<section>
+    <footer>
+        <h4>Author: Wen-Han Chang</h4>
+        <h4>Contact information: <a href="mailto:wchang1@scu.edu">wchang1@scu.edu</a></h4>
+    </footer>
+</section>
+
+<aside>Departure Station</aside>
+<select id="srcDropdown" onchange="srcChange(this)">
+    <option value="" disabled selected style="display:none;">Select departure station</option>
+</select>
+
+<aside>Arrival Station</aside>
+<select id="destDropdown" onchange="dstChange(this)">
+    <option value="" disabled selected style="display:none;">Select arrival station</option>
+</select>
+
+<aside id = "srcInfo">
+    <div id = "srcStationName"></div>
+    <div id = "srcStationAddress"></div>
+    <div id = "srcStationIntro"></div>
+</aside>
+<br/>
+<aside id = "dstInfo">
+    <div id = "dstStationName"></div>
+    <div id = "dstStationAddress"></div>
+    <div id = "dstStationIntro"></div>
+</aside>
+<br/>
+<aside id = "tripInfo">
+    <div id = "departTime"></div>
+    <div id = "arriveTime"></div>
+    <div id = "fair"></div>
+    <div id = "fairDetails"></div>
+    <div id="countdown"></div>
+</aside>
+
+
+<div id="map"></div>
+<script>
+  var directionsService;
+  var directionsDisplay;
+  function initMap() {
+    directionsService = new google.maps.DirectionsService;
+    directionsDisplay = new google.maps.DirectionsRenderer;
+    var map = new google.maps.Map(document.getElementById('map'), {
+      zoom: 8,
+      center: {lat: 37.8272, lng: -122.2913}
+    });
+    directionsDisplay.setMap(map);
+    //calculateAndDisplayRoute(directionsService, directionsDisplay);
+  }
+
+  function calculateAndDisplayRoute(directionsService, directionsDisplay) {
+    var r_srcLatlng = new google.maps.LatLng(srcLatlng.lat, srcLatlng.lng);
+    var r_dstLatlng = new google.maps.LatLng(dstLatlng.lat, dstLatlng.lng);
+    //var r_srcLatlng = new google.maps.LatLng(37.973737, -122.029095);//"1451 Oakland Ave, Concord, CA 94520";
+    //var r_dstLatlng = new google.maps.LatLng(37.699756, -121.928240);//"6501 Golden Gate Dr, Dublin, CA 94568";
+    directionsService.route({
+      origin: r_srcLatlng,
+      destination: r_dstLatlng,
+      travelMode: 'TRANSIT',
+      transitOptions: {
+        modes: ['RAIL'],
+        routingPreference: 'FEWER_TRANSFERS'
+      },
+    }, function(response, status) {
+      if (status === 'OK') {
+        directionsDisplay.setDirections(response);
+      } else {
+        window.alert('Directions request failed due to ' + status);
+      }
+    });
+  }
+</script>
+
+<div class="pure-u-1-2">
+    <div class="main-example">
+        <p>
+            Next train arrives in:
+        </p>
+        <div class="countdown-container" id="main-example"></div>
+    </div>
+</div>
+
+<script>
+var src = "";
+var srcLatlng;
+var dst = "";
+var dstLatlng;
+var stationsLatLng = new Map();
+
+getAllStations();
+reloadData();
+
+function srcChange(control){
+    src = control.value;
+    srcLatlng = stationsLatLng.get(control.value);
+    // console.log("srcChange " + src);
+    // console.log("srcLat " + srcLatlng.lat);
+    // console.log("srcLng " + srcLatlng.lng);
+    getSrcStationInfo();
+    getTrip();
+}
+
+function dstChange(control){
+    dst = control.value;
+    dstLatlng = stationsLatLng.get(control.value);
+    // console.log("dstChange " + dst);
+    // console.log("dstLat " + dstLatlng.lat);
+    // console.log("dstLng " + dstLatlng.lng);
+    getDstStationInfo();
+    getTrip();
+}
+
+function getAllStations(){
+    $.get("/stations", function(data, status){
+        var bart_stations = JSON.parse(data);
+        //console.log(bart_stations.root.stations.station[0].name);
+        //console.log(bart_stations.root.stations.station[0].abbr);
+        for (var i = 0; i < bart_stations.root.stations.station.length; i++) {
+            var name = bart_stations.root.stations.station[i].name;
+            var abbr = bart_stations.root.stations.station[i].abbr;
+            var lat = bart_stations.root.stations.station[i].gtfs_latitude;
+            var lng = bart_stations.root.stations.station[i].gtfs_longitude;
+            // console.log(name);
+            // console.log(abbr);
+            // console.log(lat);
+            // console.log(lng);
+            stationsLatLng.set(abbr, {lat: lat, lng: lng});
+            $("#srcDropdown").html(function(i, origText){
+                return origText + "<option value=" + abbr + ">" + name + "</option>"; 
+            });
+            $("#destDropdown").html(function(i, origText){
+                return origText + "<option value=" + abbr + ">" + name + "</option>"; 
+            });
+        }
+    });
+}
+
+function removeAllStations(){
+    $("#srcDropdown").html(function(i, origText){
+      return ""; 
+    });
+    $("#destDropdown").html(function(i, origText){
+      return ""; 
+    });
+}
+
+function calcFair(src, dst){
+    if (src !== dst) {
+        $.get("/trip", {source: src, dest: dst}, function(data, status){
+            var oneTrip = JSON.parse(data);
+            var onefair = oneTrip.root.schedule.request.trip['@fare'];
+            console.log("calcFair " + onefair);
+            return onefair;
+        });
+    }
+    else {
+        return 0;
+    }
+}
+
+function getTrip(){
+    if (src.length != 0 && dst.length != 0) {
+        if (src !== dst) {
+            $.get("/trip", {source: src, dest: dst}, function(data, status){
+                var myTrip = JSON.parse(data);
+                var depart_time = myTrip.root.schedule.request.trip['@origTimeMin'];
+                var arrive_time = myTrip.root.schedule.request.trip['@destTimeMin'];
+                var today = myTrip.root.schedule.request.trip['@origTimeDate']
+                var fair = myTrip.root.schedule.request.trip['@fare'];
+                $("#departTime").text("Depart Time " + depart_time);
+                $("#arriveTime").text("Arrive Time " + arrive_time);
+                $("#fair").html("Fair " + fair + " dollars");
+                $('#countdown').countdown(today + depart_time, function(event) {
+                    $(this).html("Next train arrives in: " + event.strftime('%-H h %M min %S sec'));
+                });
+                startWidgetCountdown(today + depart_time);
+                console.log("Depart Time " + depart_time);
+                console.log("Arrive Time " + arrive_time);
+                console.log("Fair " + fair);
+                console.log("Date " + today);
+                // for (var i = 0; i < myTrip.root.schedule.request.trip.leg.length; i++) {
+                //     var midSrc = myTrip.root.schedule.request.trip.leg[i]['@origin'];
+                //     var midDest = myTrip.root.schedule.request.trip.leg[i]['@destination'];
+                //     var midFair = calcFair(midSrc, midDest);
+                //     console.log(midSrc + " to " + midDest + " fair " + midFair);
+                // }
+            });
+
+            calculateAndDisplayRoute(directionsService, directionsDisplay);
+        }
+        else {
+            alert("Departure Station and Arrival Station cannot be the same!");
+        }
+    }
+}
+
+function getSrcStationInfo(){
+    if (src.length != 0) {
+        $.get("/station", {source: src}, function(data, status){
+            var stationInfo = JSON.parse(data);
+            var name = stationInfo.root.stations.station.name;
+            var address = stationInfo.root.stations.station.address;
+            var intro = stationInfo.root.stations.station.intro['#cdata-section'];
+            $("#srcStationName").text("Departure Station: " + name);
+            $("#srcStationAddress").text("Address: " + address);
+            $("#srcStationIntro").text(intro);
+            console.log(intro);
+        });
+    }
+}
+
+function getDstStationInfo(){
+    if (dst.length != 0) {
+        $.get("/station", {source: dst}, function(data, status){
+            var stationInfo = JSON.parse(data);
+            var name = stationInfo.root.stations.station.name;
+            var address = stationInfo.root.stations.station.address;
+            var intro = stationInfo.root.stations.station.intro['#cdata-section'];
+            $("#dstStationName").text("Arrival Station: " + name);
+            $("#dstStationAddress").text("Address: " + address);
+            $("#dstStationIntro").text(intro);
+            console.log(intro);
+        });
+    }
+}
+
+function reloadData(){
+    getSrcStationInfo();
+    getDstStationInfo();
+    if (src !== dst) {
+        getTrip();
+    }
+    setTimeout(reloadData, 30000);
+}
+
+</script>
+
+
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDX83L4CnBQBDb_VsRVbC0L9RTGM9zelh0&callback=initMap"
+async defer></script>
+
+<script type="text/template" id="main-example-template">
+<div class="time <%= label %>">
+  <span class="count curr top"><%= curr %></span>
+  <span class="count next top"><%= next %></span>
+  <span class="count next bottom"><%= next %></span>
+  <span class="count curr bottom"><%= curr %></span>
+  <span class="label"><%= label.length < 6 ? label : label.substr(0, 3)  %></span>
+</div>
+</script>
+<script>
+    var labels = ['hours', 'minutes', 'seconds'];
+    var nextYear = (new Date().getFullYear() + 1) + '/01/01';
+    var template = _.template($('#main-example-template').html());
+    var currDate = '00:00:00';
+    var nextDate = '00:00:00';
+    var parser = /([0-9]{2})/gi;
+    var $example = $('#main-example');
+
+    // Parse countdown string to an object
+    function strfobj(str) {
+      var parsed = str.match(parser),
+        obj = {};
+      labels.forEach(function(label, i) {
+        obj[label] = parsed[i]
+      });
+      return obj;
+    }
+    // Return the time components that diffs
+    function diff(obj1, obj2) {
+      var diff = [];
+      labels.forEach(function(key) {
+        if (obj1[key] !== obj2[key]) {
+          diff.push(key);
+        }
+      });
+      return diff;
+    }
+    // Build the layout
+    var initData = strfobj(currDate);
+    labels.forEach(function(label, i) {
+      $example.append(template({
+        curr: initData[label],
+        next: initData[label],
+        label: label
+      }));
+    });
+    // Starts the countdown
+    //startWidgetCountdown(nextYear);
+    function startWidgetCountdown(newTime) {
+      $example.countdown(newTime, function(event) {
+        var newDate = event.strftime('%H:%M:%S');
+        var data;
+        if (newDate !== nextDate) {
+          currDate = nextDate;
+          nextDate = newDate;
+          // Setup the data
+          data = {
+            'curr': strfobj(currDate),
+            'next': strfobj(nextDate)
+          };
+          // Apply the new values to each node that changed
+          diff(data.curr, data.next).forEach(function(label) {
+            var selector = '.%s'.replace(/%s/, label),
+                $node = $example.find(selector);
+            // Update the node
+            $node.removeClass('flip');
+            $node.find('.curr').text(data.curr[label]);
+            $node.find('.next').text(data.next[label]);
+            // Wait for a repaint to then flip
+            _.delay(function($node) {
+              $node.addClass('flip');
+            }, 50, $node);
+          });
+        }
+      });
+    }
+</script>
+
+</body>
+</html>
