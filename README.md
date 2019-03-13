@@ -1,5 +1,8 @@
 # BART train web service
-- Develop backend by using Node.js and express library and on AWS.
+- Develop backend by using Node.js and express library on AWS.
+- Develop dynamic front-end page by using jQuery.
+- Intergrate Google Map and provide navigation feature
+- 
 
 UI example<br>
 <img src="/page.png" title="page" width="80%" height="80%">
