@@ -6,7 +6,7 @@ UI example<br>
 
 # Technologies
 **Language:** Javascript, HTML, CSS<br>
-**Library:** jQuery, express library, Google Maps API<br>
+**Library:** jQuery, Google Maps API, express library<br>
 **Framework:** Node.js<br>
 **Platform:** AWS<br>
 
