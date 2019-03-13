@@ -1,6 +1,6 @@
 # BART train web service
 - Developed backend by using Node.js and express library on AWS.
-- Developed dynamic front-end page through jQuery.
+- Developed dynamic front-end pages through jQuery.
 - Embedded Google Map and provide navigation feature.
 - Integrated BART API to provide real-time information.
 
