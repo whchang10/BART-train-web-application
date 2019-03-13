@@ -2,7 +2,7 @@
 - Develop backend by using Node.js and express library on AWS.
 - Develop dynamic front-end page by using jQuery.
 - Embed Google Map and provide navigation feature.
-- Intergrate BART API to provide real-time information.
+- Integrate BART API to provide real-time information.
 
 UI example<br>
 <img src="/page.png" title="page" width="80%" height="80%">
